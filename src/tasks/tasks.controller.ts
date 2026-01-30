@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
   Query,
@@ -11,42 +12,38 @@ import {
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateStatusDto } from './dto/update-task-status.dto';
+import { Task } from './task.entity';
 import { GetTasksFilterDto } from './dto/get-tasks-filter.dto';
-import { Task } from './task.model';
 
 @Controller('tasks')
 export class TasksController {
   constructor(private readonly tasksService: TasksService) {}
 
   @Get()
-  getTasks(@Query() filterDto: GetTasksFilterDto): Task[] {
-    if (Object.keys(filterDto).length === 0) {
-      return this.tasksService.getAllTasks();
-    } else {
-      return this.tasksService.getTasksWithFilters(filterDto);
-    }
+  async getTasks(@Query() filterDto: GetTasksFilterDto): Promise<Task[]> {
+    return await this.tasksService.getTasks(filterDto);
   }
 
   @Get('/:id')
-  getTaskById(@Param('id') id: string) {
-    return this.tasksService.getTaskById(id);
+  async getTaskById(@Param('id', ParseUUIDPipe) id: string): Promise<Task> {
+    return await this.tasksService.getTaskById(id);
   }
 
   @Post()
-  createTask(@Body() createTaskDto: CreateTaskDto) {
-    return this.tasksService.createTask(createTaskDto);
+  async createTask(@Body() createTaskDto: CreateTaskDto): Promise<Task> {
+    return await this.tasksService.createTask(createTaskDto);
   }
 
   @Delete('/:id')
-  deleteTaskById(@Param('id') id: string) {
-    return this.tasksService.deleteTaskById(id);
+  async deleteTaskById(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
+    await this.tasksService.deleteTaskById(id);
   }
 
-  @Patch('/:id/status')
-  updateTaskStatus(
+  @Patch('/status/:id')
+  async updateTaskStatus(
     @Param('id') id: string,
     @Body() updateStatusDto: UpdateStatusDto,
   ) {
-    return this.tasksService.updateTaskStatus(id, updateStatusDto);
+    return await this.tasksService.updateTaskStatus(id, updateStatusDto);
   }
 }
